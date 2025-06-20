@@ -1,0 +1,23 @@
+{
+  "tables": [
+    {
+      "name": "users",
+      "columns": [
+        { "name": "id", "type": "uuid" },
+        { "name": "username", "type": "text" },
+        { "name": "email", "type": "text" },
+        { "name": "password", "type": "text" },
+        { "name": "account-type", "type": "text" },
+        { "name": "created_at", "type": "timestamp" }
+      ]
+    },
+    {
+      "name": "table_name",
+      "columns": [
+        { "name": "column1", "type": "type1" },
+        { "name": "column2", "type": "type2" },
+        { "name": "column3", "type": "type3" }
+      ]
+    }
+  ]
+}
