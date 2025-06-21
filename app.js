@@ -3,6 +3,7 @@ import cors from "cors";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
+import os from "os";
 
 // Carga las variables de entorno del archivo .env
 dotenv.config();
@@ -21,6 +22,7 @@ const { PORT, SUPABASE_URL, SUPABASE_KEY } = process.env;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 app.post("/register", async (req, res) => {
+  console.log("Se recivio la peticion a /register");
   try {
     const { username, email, password, accountType } = req.body;
 
@@ -81,8 +83,8 @@ app.post("/register", async (req, res) => {
   }
 });
 
-app.get("/login", async (req, res) => {
-  console.log("Se recivio la peticion");
+app.post("/login", async (req, res) => {
+  console.log("Se recivio la peticion a /login");
   try {
     const { email, password } = req.body;
 
@@ -118,7 +120,7 @@ app.get("/login", async (req, res) => {
 
     // Sì las contraseñas no coinciden respondemos con un mensaje de error
     if (!passwordMatch) {
-      console.log("Error: Las contraseñas no coinciden");
+      console.log("Error: La contraseña no coincide");
       return res.status(400).json({ error: "Las contraseñas no coinciden" });
     }
 
@@ -145,5 +147,16 @@ app.get("/", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is running at http://localhost:${PORT}`);
+  const interfaces = os.networkInterfaces();
+  let localIP = "localhost";
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      if (iface.family === "IPv4" && !iface.internal) {
+        localIP = iface.address;
+        break;
+      }
+    }
+  }
+  console.log(`El servidor está corriendo en http://localhost:${PORT}`);
+  console.log(`Accesible en tu red local en: http://${localIP}:${PORT}`);
 });
