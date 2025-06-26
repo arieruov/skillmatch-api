@@ -3,20 +3,27 @@ import jwt from "jsonwebtoken";
 const { JWT_SECRET } = process.env;
 
 export const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
+  const authHeader = req.headers.authorization;
 
-  // Esperamos el formato: "Bearer token"
-  const token = authHeader && authHeader.split(" ")[1];
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Header requerido (server)" });
+  }
 
-  if (!token) {
-    return res.status(401).json({ error: "Token no proporcionado" });
+  const token = authHeader.split(" ")[1];
+
+  if (!token || token === "null" || token === "undefined") {
+    return res.status(401).json({ error: "Token requerido (server)" });
   }
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded; // Agrega los datos del usuario al request
-    next(); // Continúa a la siguiente función
+
+    req.user = decoded;
+
+    next();
   } catch (err) {
-    return res.status(403).json({ error: "Token inválido o expirado" });
+    return res
+      .status(403)
+      .json({ error: "Token inválido o expirado (server)" });
   }
 };

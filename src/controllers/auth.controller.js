@@ -43,9 +43,7 @@ export const register = async (req, res) => {
       return res.status(400).json({ error: error.message });
     }
 
-    res
-      .status(201)
-      .json({ message: "Usuario registrado exitosamente", userData: data });
+    res.status(201).json({ userData: data });
   } catch (err) {
     res.status(500).json({ error: `Error interno del servidor: ${err}` });
   }
@@ -61,7 +59,7 @@ export const login = async (req, res) => {
 
     const { data: existingUser, error: userError } = await supabase
       .from("users")
-      .select("id, username, email, password")
+      .select("id, email, password")
       .eq("email", email)
       .single();
 
@@ -81,11 +79,9 @@ export const login = async (req, res) => {
 
     const token = generateToken({
       id: existingUser.id,
-      username: existingUser.username,
-      email: existingUser.email,
     });
 
-    res.status(200).json({ message: "Usuario validado", token });
+    res.status(200).json({ token });
   } catch (err) {
     res.status(500).json({ error: `Error interno del servidor: ${err}` });
   }

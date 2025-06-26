@@ -3,6 +3,7 @@ import os from "os";
 import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/auth.routes.js";
+import userRoutes from "./routes/user.routes.js";
 
 const app = express();
 const { PORT } = process.env;
@@ -11,6 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
+app.use("/user", userRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "Bienvenido a skillmatch-api" });
