@@ -7,7 +7,9 @@ export const register = async (req, res) => {
     const { username, email, password, accountType } = req.body;
 
     if (!username || !email || !password || !accountType) {
-      return res.status(400).json({ error: "Todos los campos son requeridos" });
+      return res
+        .status(400)
+        .json({ error: "Servidor: Todos los campos son requeridos" });
     }
 
     const { data: existingUser, error: userError } = await supabase
@@ -17,11 +19,13 @@ export const register = async (req, res) => {
       .single();
 
     if (existingUser) {
-      return res.status(400).json({ error: "El usuario ya existe" });
+      return res.status(400).json({ error: "Servidor: El usuario ya existe" });
     }
 
     if (userError && userError.code !== "PGRST116") {
-      return res.status(500).json({ error: "Error interno del servidor" });
+      return res
+        .status(500)
+        .json({ error: "Servidor: Error interno del servidor" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -36,16 +40,18 @@ export const register = async (req, res) => {
           "account-type": accountType,
         },
       ])
-      .select("id, username, email, account-type")
+      .select("id, username, email, account_type")
       .single();
 
     if (error) {
-      return res.status(400).json({ error: error.message });
+      return res.status(400).json({ error: `Servidor: ${error.message}` });
     }
 
     res.status(201).json({ userData: data });
   } catch (err) {
-    res.status(500).json({ error: `Error interno del servidor: ${err}` });
+    res
+      .status(500)
+      .json({ error: `Servidor: Error interno del servidor ${err}` });
   }
 };
 
@@ -54,7 +60,9 @@ export const login = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: "Todos los campos son requeridos" });
+      return res
+        .status(400)
+        .json({ error: "Servidor: Todos los campos son requeridos" });
     }
 
     const { data: existingUser, error: userError } = await supabase
@@ -64,17 +72,19 @@ export const login = async (req, res) => {
       .single();
 
     if (userError && userError.code !== "PGRST116") {
-      return res.status(500).json({ error: "Error interno del servidor" });
+      return res
+        .status(500)
+        .json({ error: "Servidor: Error interno del servidor" });
     }
 
     if (!existingUser) {
-      return res.status(400).json({ error: "El usuario no existe" });
+      return res.status(400).json({ error: "Servidor: El usuario no existe" });
     }
 
     const passwordMatch = await bcrypt.compare(password, existingUser.password);
 
     if (!passwordMatch) {
-      return res.status(400).json({ error: "Contraseña incorrecta" });
+      return res.status(400).json({ error: "Servidor: Contraseña incorrecta" });
     }
 
     const token = generateToken({
@@ -83,6 +93,8 @@ export const login = async (req, res) => {
 
     res.status(200).json({ token });
   } catch (err) {
-    res.status(500).json({ error: `Error interno del servidor: ${err}` });
+    res
+      .status(500)
+      .json({ error: `Servidor: Error interno del servidor: ${err}` });
   }
 };
