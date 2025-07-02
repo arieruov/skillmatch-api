@@ -236,3 +236,127 @@ export const getAllSavedOffers = async (req, res) => {
     res.status(500).json({ error: "Servidor: Error interno del servidor" });
   }
 };
+
+export const editOffer = async (req, res) => {
+  try {
+    const {
+      offerId,
+      jobTitle,
+      company,
+      location,
+      applicationUrl,
+      jobType,
+      experience,
+      workMode,
+      salary,
+      skills,
+      description,
+      aboutCompany,
+      responsabilities,
+      requirements,
+      weOffer,
+    } = req.body;
+
+    const userId = req.user.id;
+
+    if (
+      !offerId ||
+      !jobTitle ||
+      !company ||
+      !location ||
+      !applicationUrl ||
+      !jobType ||
+      !experience ||
+      !workMode ||
+      !salary ||
+      !skills ||
+      !description ||
+      !aboutCompany ||
+      !responsabilities ||
+      !requirements ||
+      !weOffer
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Servidor: Todos los campos son requeridos" });
+    }
+
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ error: "Servidor: Es necesario el id del usuario" });
+    }
+
+    const { error } = await supabase
+      .from("jobs")
+      .update({
+        job_title: jobTitle,
+        company: company,
+        location: location,
+        application_url: applicationUrl,
+        job_type: jobType,
+        experience: experience,
+        work_mode: workMode,
+        salary: salary,
+        skills: skills,
+        description: description,
+        about_company: aboutCompany,
+        responsabilities: responsabilities,
+        requirements: requirements,
+        we_offer: weOffer,
+      })
+      .eq("id", offerId)
+      .eq("user_id", userId);
+
+    if (error) {
+      console.log(error);
+      return res
+        .status(500)
+        .json({ error: "Servidor: No se pudo editar la oferta" });
+    }
+
+    res.status(200).json({ message: "Servidor: Oferta editada correctamente" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Servidor: Error interno del servidor" });
+  }
+};
+
+export const deleteOffer = async (req, res) => {
+  try {
+    const { offerId } = req.body;
+    const userId = req.user.id;
+
+    if (!offerId) {
+      return res
+        .status(400)
+        .json({
+          error: "Servidor: Es necesario el id de la oferta",
+        });
+    }
+
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ error: "Servidor: Es necesario el id del usuario" });
+    }
+
+    const { error } = await supabase
+      .from("jobs")
+      .delete()
+      .eq("id", offerId)
+      .eq("user_id", userId);
+
+    if (error) {
+      console.log(error);
+      return res
+        .status(500)
+        .json({ error: "Servidor: No se pudo eliminar la oferta" });
+    }
+
+    res.status(200).json({ message: "Servidor: Oferta eliminada correctamente" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Servidor: Error interno del servidor" });
+  }
+};
