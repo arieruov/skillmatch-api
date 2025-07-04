@@ -8,6 +8,7 @@ import {
   editOffer,
   deleteOffer,
   getOffersPublishedByUser,
+  matchJobs,
 } from "../controllers/job.controller.js";
 import { authenticateToken } from "../middlewares/auth.middleware.js";
 
@@ -26,5 +27,6 @@ router.post("/publishOffer", authenticateToken, publishOffer);
 router.post("/saveOffer", authenticateToken, saveOffer);
 router.post("/editOffer", authenticateToken, editOffer);
 router.post("/deleteOffer", authenticateToken, deleteOffer);
+router.post("/matchJobs", authenticateToken, matchJobs);
 
 export default router;

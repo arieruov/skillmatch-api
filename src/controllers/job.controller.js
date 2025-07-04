@@ -393,6 +393,141 @@ const getOffersPublishedByUser = async (req, res) => {
   }
 };
 
+// Utilidad simple para limpiar y tokenizar texto
+function tokenize(text) {
+  return (text || "")
+    .toLowerCase()
+    .replace(/[^\w\s]/g, "")
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+// Calcula TF (frecuencia de término) para un array de tokens
+function termFrequency(tokens) {
+  const tf = {};
+  tokens.forEach((token) => {
+    tf[token] = (tf[token] || 0) + 1;
+  });
+  const total = tokens.length;
+  Object.keys(tf).forEach((token) => {
+    tf[token] = tf[token] / total;
+  });
+  return tf;
+}
+
+// Calcula IDF (inversa de frecuencia de documento) para todos los documentos
+function inverseDocumentFrequency(docs) {
+  const idf = {};
+  const totalDocs = docs.length;
+  const vocab = new Set();
+  docs.forEach((tokens) => tokens.forEach((t) => vocab.add(t)));
+  vocab.forEach((term) => {
+    let count = 0;
+    docs.forEach((tokens) => {
+      if (tokens.includes(term)) count++;
+    });
+    idf[term] = Math.log((totalDocs + 1) / (count + 1)) + 1;
+  });
+  return idf;
+}
+
+// Calcula el vector TF-IDF para un documento
+function tfidfVector(tf, idf, vocab) {
+  return vocab.map((term) => (tf[term] || 0) * (idf[term] || 0));
+}
+
+// Calcula la similitud de coseno entre dos vectores
+function cosineSimilarity(vecA, vecB) {
+  let dot = 0,
+    magA = 0,
+    magB = 0;
+  for (let i = 0; i < vecA.length; i++) {
+    dot += vecA[i] * vecB[i];
+    magA += vecA[i] * vecA[i];
+    magB += vecB[i] * vecB[i];
+  }
+  return magA && magB ? dot / (Math.sqrt(magA) * Math.sqrt(magB)) : 0;
+}
+
+//Son necesarios mas datos en la base de datos para la comparacion
+const matchJobs = async (req, res) => {
+  try {
+    const { skills } = req.body;
+    if (!skills || typeof skills !== "string") {
+      return res
+        .status(400)
+        .json({ error: "Se requiere un string de habilidades" });
+    }
+
+    // 1. Obtener todas las ofertas
+    const { data: jobs, error } = await supabase
+      .from("jobs")
+      .select(
+        "id, job_title, company, location, salary, job_type, work_mode, experience, description, skills, responsabilities, requirements"
+      );
+
+    if (error) {
+      console.error(error);
+      return res.status(500).json({ error: "Error al obtener las ofertas" });
+    }
+
+    // 2. Preprocesar documentos de ofertas
+    const jobDocs = jobs.map((job) => {
+      return tokenize(
+        [
+          job.skills,
+          job.description,
+          job.responsabilities,
+          job.requirements,
+        ].join(" ")
+      );
+    });
+
+    // 3. Preprocesar habilidades del usuario
+    const userTokens = tokenize(skills.split(",").join(" "));
+
+    // 4. Calcular IDF global
+    const allDocs = [...jobDocs, userTokens];
+    const idf = inverseDocumentFrequency(allDocs);
+
+    // 5. Vocabulario global
+    const vocab = Object.keys(idf);
+
+    // 6. Calcular TF-IDF de usuario
+    const userTF = termFrequency(userTokens);
+    const userVec = tfidfVector(userTF, idf, vocab);
+
+    // 7. Calcular similitud para cada oferta y devolver solo los campos requeridos
+    const rankedJobs = jobs.map((job, idx) => {
+      const tf = termFrequency(jobDocs[idx]);
+      const jobVec = tfidfVector(tf, idf, vocab);
+      const similarity = cosineSimilarity(userVec, jobVec);
+      // Solo los campos requeridos + similitud
+      return {
+        id: job.id,
+        job_title: job.job_title,
+        company: job.company,
+        location: job.location,
+        salary: job.salary,
+        job_type: job.job_type,
+        work_mode: job.work_mode,
+        experience: job.experience,
+        description: job.description,
+        skills: job.skills,
+        similarity,
+      };
+    });
+
+    // 8. Ordenar por similitud descendente
+    rankedJobs.sort((a, b) => b.similarity - a.similarity);
+
+    res.status(200).json({ jobs: rankedJobs });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
+
 export {
   publishOffer,
   getAllOffers,
@@ -402,4 +537,5 @@ export {
   editOffer,
   deleteOffer,
   getOffersPublishedByUser,
+  matchJobs,
 };
