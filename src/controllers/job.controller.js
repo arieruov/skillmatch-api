@@ -1,7 +1,7 @@
 import { supabase } from "../config/supabase.js";
 
 // Almacena una oferta de trabajo en la base de datos
-export const publishOffer = async (req, res) => {
+const publishOffer = async (req, res) => {
   try {
     const {
       jobTitle,
@@ -87,7 +87,7 @@ export const publishOffer = async (req, res) => {
 };
 
 // Devuleve todas las ofertas almacenadas en la base de datos
-export const getAllOffers = async (req, res) => {
+const getAllOffers = async (req, res) => {
   try {
     const { data, error } = await supabase
       .from("jobs")
@@ -110,7 +110,7 @@ export const getAllOffers = async (req, res) => {
 };
 
 // Devuelve una oferta especifica segun el id de la oferta
-export const getOffer = async (req, res) => {
+const getOffer = async (req, res) => {
   try {
     const userId = req.user.id;
     const offerId = req.body.offerId;
@@ -148,7 +148,7 @@ export const getOffer = async (req, res) => {
 };
 
 // Guarda una oferta en la tabla de saved_offers
-export const saveOffer = async (req, res) => {
+const saveOffer = async (req, res) => {
   try {
     const userId = req.user.id;
     const offerId = req.body.offerId;
@@ -209,7 +209,7 @@ export const saveOffer = async (req, res) => {
   }
 };
 
-export const getAllSavedOffers = async (req, res) => {
+const getAllSavedOffers = async (req, res) => {
   try {
     const userId = req.user.id;
 
@@ -237,7 +237,7 @@ export const getAllSavedOffers = async (req, res) => {
   }
 };
 
-export const editOffer = async (req, res) => {
+const editOffer = async (req, res) => {
   try {
     const {
       offerId,
@@ -322,17 +322,15 @@ export const editOffer = async (req, res) => {
   }
 };
 
-export const deleteOffer = async (req, res) => {
+const deleteOffer = async (req, res) => {
   try {
     const { offerId } = req.body;
     const userId = req.user.id;
 
     if (!offerId) {
-      return res
-        .status(400)
-        .json({
-          error: "Servidor: Es necesario el id de la oferta",
-        });
+      return res.status(400).json({
+        error: "Servidor: Es necesario el id de la oferta",
+      });
     }
 
     if (!userId) {
@@ -354,9 +352,54 @@ export const deleteOffer = async (req, res) => {
         .json({ error: "Servidor: No se pudo eliminar la oferta" });
     }
 
-    res.status(200).json({ message: "Servidor: Oferta eliminada correctamente" });
+    res
+      .status(200)
+      .json({ message: "Servidor: Oferta eliminada correctamente" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Servidor: Error interno del servidor" });
   }
+};
+
+const getOffersPublishedByUser = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    if (!userId) {
+      return res.status(400).json({
+        error: "Servidor: Es necesario el id del usuario",
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("jobs")
+      .select(
+        "id, job_title, company, location, salary, job_type, work_mode, experience, description, skills"
+      )
+      .eq("user_id", userId);
+
+    if (error) {
+      console.log(error);
+
+      return res
+        .status(500)
+        .json({ error: "Servidor: No se pudieron obtener las ofertas" });
+    }
+
+    res.status(200).json(data);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Servidor: Error interno del servidor" });
+  }
+};
+
+export {
+  publishOffer,
+  getAllOffers,
+  getOffer,
+  saveOffer,
+  getAllSavedOffers,
+  editOffer,
+  deleteOffer,
+  getOffersPublishedByUser,
 };

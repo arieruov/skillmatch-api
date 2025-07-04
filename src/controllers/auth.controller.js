@@ -37,7 +37,7 @@ export const register = async (req, res) => {
           username,
           email,
           password: hashedPassword,
-          "account-type": accountType,
+          account_type: accountType,
         },
       ])
       .select("id, username, email, account_type")
