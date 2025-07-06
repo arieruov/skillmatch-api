@@ -518,10 +518,13 @@ const matchJobs = async (req, res) => {
       };
     });
 
-    // 8. Ordenar por similitud descendente
-    rankedJobs.sort((a, b) => b.similarity - a.similarity);
+    // Filtrar solo las ofertas con similitud mayor a 0
+    const filteredJobs = rankedJobs.filter((job) => job.similarity > 0);
 
-    res.status(200).json({ jobs: rankedJobs });
+    // Ordenar por similitud descendente
+    filteredJobs.sort((a, b) => b.similarity - a.similarity);
+
+    res.status(200).json({ jobs: filteredJobs });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error interno del servidor" });
