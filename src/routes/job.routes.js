@@ -1,14 +1,14 @@
 import express from "express";
 import {
-  getAllOffers,
-  getAllSavedOffers,
-  getOffer,
-  publishOffer,
-  saveOffer,
-  editOffer,
-  deleteOffer,
-  getOffersPublishedByUser,
-  matchJobs,
+    getAllOffers,
+    getAllSavedOffers,
+    getOffer,
+    publishOffer,
+    saveOffer,
+    editOffer,
+    deleteOffer,
+    getOffersPublishedByUser,
+    matchJobs,
 } from "../controllers/job.controller.js";
 import { authenticateToken } from "../middlewares/auth.middleware.js";
 
@@ -17,9 +17,9 @@ const router = express.Router();
 router.get("/getAllOffers", authenticateToken, getAllOffers);
 router.get("/getAllSavedOffers", authenticateToken, getAllSavedOffers);
 router.get(
-  "/getOffersPublishedByUser",
-  authenticateToken,
-  getOffersPublishedByUser
+    "/getOffersPublishedByUser",
+    authenticateToken,
+    getOffersPublishedByUser
 );
 
 router.post("/getOffer", authenticateToken, getOffer);

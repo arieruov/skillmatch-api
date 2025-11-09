@@ -406,7 +406,7 @@ const getOffersPublishedByUser = async (req, res) => {
 //Son necesarios mas datos en la base de datos para la comparacion
 const matchJobs = async (req, res) => {
     try {
-        const { skills } = req.body;
+        const { skills, filterSimZero = true } = req.body;
         if (!skills || typeof skills !== "string") {
             return res
                 .status(400)
@@ -474,13 +474,17 @@ const matchJobs = async (req, res) => {
             };
         });
 
-        // Filtrar solo las ofertas con similitud mayor a 0
-        const filteredJobs = rankedJobs.filter((job) => job.similarity > 0);
+        // Filtrar según el parámetro filterSimZero
+        // Si filterSimZero es true, solo devuelve trabajos con similitud > 0
+        // Si es false, devuelve todos los trabajos
+        let resultJobs = filterSimZero
+            ? rankedJobs.filter((job) => job.similarity > 0)
+            : rankedJobs;
 
         // Ordenar por similitud descendente
-        filteredJobs.sort((a, b) => b.similarity - a.similarity);
+        resultJobs.sort((a, b) => b.similarity - a.similarity);
 
-        res.status(200).json({ jobs: filteredJobs });
+        res.status(200).json({ jobs: resultJobs });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Error interno del servidor" });
