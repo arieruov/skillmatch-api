@@ -13,7 +13,7 @@ const getUserData = async (req, res) => {
 
     const { data: userData, error } = await supabase
       .from("users")
-      .select("id, username, email, account_type")
+      .select("id, username, email, account_type, skills")
       .eq("id", id)
       .single();
 
@@ -33,7 +33,7 @@ const getUserData = async (req, res) => {
 
 const updateUserData = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, skills } = req.body;
     const id = req.user.id;
 
     if (!id) {
@@ -63,7 +63,7 @@ const updateUserData = async (req, res) => {
       });
     }
 
-    let updateFields = { username, email };
+    let updateFields = { username, email, skills };
 
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -74,7 +74,7 @@ const updateUserData = async (req, res) => {
       .from("users")
       .update(updateFields)
       .eq("id", id)
-      .select("id, username, email, account_type")
+      .select("id, username, email, account_type, skills")
       .single();
 
     if (error) {
